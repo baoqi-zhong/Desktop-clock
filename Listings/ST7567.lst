@@ -1,0 +1,485 @@
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE ST7567
+OBJECT MODULE PLACED IN .\Objects\ST7567.obj
+COMPILER INVOKED BY: D:\install\keil_install\C51\BIN\C51.EXE Src\ST7567.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PR
+                    -INT(.\Listings\ST7567.lst) TABS(2) OBJECT(.\Objects\ST7567.obj)
+
+line level    source
+
+   1          /*****************************************
+   2          Ä£¿éÃû³Æ£ºST7567Çý¶¯
+   3          ×÷Õß£ºSocialSisterYi
+   4          ÖÆ×÷Ê±¼ä£º2017.2
+   5          ËµÃ÷£ºST7567£¨¼æÈÝST7565¡¢UC1701µÈµÈ¡£¡£¡££©Îªµ¥É«STN¿ØÖÆÆ÷£¬½Ó¿Ú£ºSPI/8-bit²¢¿Ú£¬·Ö±æÂÊ132*64+1ICON,È¡Ä£·
+             -½Ê½£º8Î»ÊúÖÃºáÅÅÏÂ¸ßÎ»
+   6          ±¸×¢£º
+   7          *****************************************/
+   8          
+   9          #include "delay.h"
+  10          #include "ST7567.h"
+*** ERROR C202 IN LINE 81 OF Src\ST7567.h: 'P2': undefined identifier
+*** ERROR C202 IN LINE 82 OF Src\ST7567.h: 'P2': undefined identifier
+*** ERROR C202 IN LINE 83 OF Src\ST7567.h: 'P2': undefined identifier
+*** ERROR C202 IN LINE 84 OF Src\ST7567.h: 'P2': undefined identifier
+*** ERROR C202 IN LINE 85 OF Src\ST7567.h: 'P2': undefined identifier
+  11          #if (LCD_INTERFACE==LCD_INTERFACE_SPI_HW)
+              #include "SPIHW.h"
+              #endif
+  14          
+  15          bit lcd_seg_reverse=  LCD_SEG_REVERSE,
+  16              lcd_com_reverse=  LCD_COM_REVERSE,
+  17            lcd_black_reverse=LCD_BLACK_REVERSE;
+  18          unsigned char lcd_contrast=LCD_CONTRAST;
+  19          
+  20          /*********************************
+  21          º¯ÊýÃû³Æ£ºLcd_write_byte
+  22          ¹¦ÄÜ£ºLCDÍ¨¹ýÈí¼þSPI·¢ËÍÒ»¸ö×Ö½Ú
+  23          ÊäÈë£ºÐ´ÈëÄÚÈÝ
+  24          Êä³ö£ºÎÞ
+  25          ±¸×¢£ºÈí¼þ´®¿Ú
+  26          *********************************/
+  27          #if (LCD_INTERFACE==LCD_INTERFACE_SPI_SW)
+  28          void Lcd_write_byte(unsigned char Byte)
+  29          {
+  30   1        unsigned char i;
+  31   1        for(i=0;i<8;i++)
+  32   1        {
+  33   2          LCD_CLK=0;
+*** ERROR C202 IN LINE 33 OF Src\ST7567.c: 'LCD_CLK': undefined identifier
+  34   2          LCD_DAT=(Byte&0x80);
+*** ERROR C202 IN LINE 34 OF Src\ST7567.c: 'LCD_DAT': undefined identifier
+  35   2          Byte<<=1;
+  36   2          LCD_CLK=1;
+*** ERROR C202 IN LINE 36 OF Src\ST7567.c: 'LCD_CLK': undefined identifier
+  37   2        }
+  38   1      }
+  39          #endif
+  40          
+  41          /*********************************
+  42          º¯ÊýÃû³Æ£ºLcd_write_cmd
+  43          ¹¦ÄÜ£ºLCDÐ´Ö¸Áî
+  44          ÊäÈë£ºÐ´ÈëÖ¸Áî
+  45          Êä³ö£ºÎÞ
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 2   
+
+  46          ±¸×¢£º
+  47          *********************************/
+  48          void Lcd_write_cmd(unsigned char cmd)
+  49          {
+  50   1        EA=0;
+*** ERROR C202 IN LINE 50 OF Src\ST7567.c: 'EA': undefined identifier
+  51   1        LCD_CS=0;
+*** ERROR C202 IN LINE 51 OF Src\ST7567.c: 'LCD_CS': undefined identifier
+  52   1        LCD_RS=0;
+*** ERROR C202 IN LINE 52 OF Src\ST7567.c: 'LCD_RS': undefined identifier
+  53   1      #if (LCD_INTERFACE==LCD_INTERFACE_6800PARALLEL)
+              //  LCD_RW=0;
+                LCD_DATA=cmd;
+                LCD_E=0;
+                _nop_();
+                LCD_E=1;
+              #elif (LCD_INTERFACE==LCD_INTERFACE_8080PARALLEL)
+              //  LCD_RD=1;
+                LCD_DATA=cmd;
+                LCD_WR=0;
+                _nop_();
+                LCD_WR=1;
+              #elif (LCD_INTERFACE==LCD_INTERFACE_SPI_SW)
+  66   1        Lcd_write_byte(cmd);
+  67   1      #elif (LCD_INTERFACE==LCD_INTERFACE_SPI_HW)
+                SPIHW_Write(cmd);
+              #endif
+  70   1        LCD_CS=1;
+*** ERROR C202 IN LINE 70 OF Src\ST7567.c: 'LCD_CS': undefined identifier
+  71   1        EA=1;
+*** ERROR C202 IN LINE 71 OF Src\ST7567.c: 'EA': undefined identifier
+  72   1      }
+  73          
+  74          /*********************************
+  75          º¯ÊýÃû³Æ£ºLcd_write_dat
+  76          ¹¦ÄÜ£ºLCDÐ´Êý¾Ý
+  77          ÊäÈë£ºÐ´ÈëÊý¾Ý
+  78          Êä³ö£ºÎÞ
+  79          ±¸×¢£º
+  80          *********************************/
+  81          void Lcd_write_dat(unsigned char dat)
+  82          {
+  83   1        EA=0;
+*** ERROR C202 IN LINE 83 OF Src\ST7567.c: 'EA': undefined identifier
+  84   1        LCD_CS=0;
+*** ERROR C202 IN LINE 84 OF Src\ST7567.c: 'LCD_CS': undefined identifier
+  85   1        LCD_RS=1;
+*** ERROR C202 IN LINE 85 OF Src\ST7567.c: 'LCD_RS': undefined identifier
+  86   1      #if (LCD_INTERFACE==LCD_INTERFACE_6800PARALLEL)
+              //  LCD_RW=0;
+                LCD_DATA=dat;
+                LCD_E=0;
+                _nop_();
+                LCD_E=1;
+              #elif (LCD_INTERFACE==LCD_INTERFACE_8080PARALLEL)
+              //  LCD_RD=1;
+                LCD_DATA=dat;
+                LCD_WR=0;
+                _nop_();
+                LCD_WR=1;
+              #elif (LCD_INTERFACE==LCD_INTERFACE_SPI_SW)
+  99   1        Lcd_write_byte(dat);
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 3   
+
+ 100   1      #elif (LCD_INTERFACE==LCD_INTERFACE_SPI_HW)
+                SPIHW_Write(dat);
+              #endif
+ 103   1        LCD_CS=1;
+*** ERROR C202 IN LINE 103 OF Src\ST7567.c: 'LCD_CS': undefined identifier
+ 104   1        EA=1;
+*** ERROR C202 IN LINE 104 OF Src\ST7567.c: 'EA': undefined identifier
+ 105   1      }
+ 106          
+ 107          /*********************************
+ 108          º¯ÊýÃû³Æ£ºLcd_set_pos
+ 109          ¹¦ÄÜ£ºLCDÉèÖÃ×ø±ê
+ 110          ÊäÈë£ºx×ø±ê£¬y×ø±ê
+ 111          Êä³ö£ºÎÞ
+ 112          ±¸×¢£ºx<=131£¬y<=7
+ 113          *********************************/
+ 114          void Lcd_set_pos(unsigned char x,unsigned char y)
+ 115          {
+ 116   1        if(lcd_seg_reverse)
+ 117   1          x+=(132-LCD_WEIGHT);
+ 118   1        Lcd_write_cmd(LCD_Set_Page_Address+y);//Ò³µØÖ·
+ 119   1        Lcd_write_cmd(LCD_Set_Column_Address_lower_bit|x&0x0f);//µÍµØÖ·
+ 120   1        Lcd_write_cmd(LCD_Set_Column_Address_upper_bit|((x&0xf0)>>4));//¸ßµØÖ·
+ 121   1      }
+ 122          
+ 123          /*********************************
+ 124          º¯ÊýÃû³Æ£ºLcd_fill
+ 125          ¹¦ÄÜ£ºLCDÌî³ä
+ 126          ÊäÈë£ºxÆðÊ¼×ø±ê£¬yÆðÊ¼×ø±ê£¬³¤¶È£¬¿í¶È£¬Ìî³äÖµ
+ 127          Êä³ö£ºÎÞ
+ 128          ±¸×¢£º
+ 129          *********************************/
+ 130          void Lcd_fill(unsigned char x0,unsigned char y0,unsigned char h,unsigned char w,unsigned char dat)
+ 131          {
+ 132   1        unsigned char x;
+ 133   1        if(x0>131||h>132||y0>7||w>8)
+ 134   1          return;
+ 135   1        h=h+x0-1;//¼ÆËã×ø±êÔöÁ¿ÖÕÖ¹Öµ
+ 136   1        w=w+y0-1;
+ 137   1        for(;y0<=w;y0++)
+ 138   1        {
+ 139   2          Lcd_set_pos(x0,y0);
+ 140   2          for(x=x0;x<=h;x++)
+ 141   2            Lcd_write_dat(dat);
+ 142   2        }
+ 143   1      }
+ 144          
+ 145          /*********************************
+ 146          º¯ÊýÃû³Æ£ºLcd_cls
+ 147          ¹¦ÄÜ£ºLCDÇåÆÁ
+ 148          ÊäÈë£ºÎÞ
+ 149          Êä³ö£ºÎÞ
+ 150          ±¸×¢£º
+ 151          *********************************/
+ 152          void Lcd_cls()
+ 153          {
+ 154   1        Lcd_fill(0,0,132,8,0x00);
+ 155   1      }
+ 156          
+ 157          /*********************************
+ 158          º¯ÊýÃû³Æ£ºLcd_on
+ 159          ¹¦ÄÜ£ºLCD¿ªÆôÏÔÊ¾
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 4   
+
+ 160          ÊäÈë£ºÎÞ
+ 161          Êä³ö£ºÎÞ
+ 162          ±¸×¢£º
+ 163          *********************************/
+ 164          void Lcd_on()
+ 165          {
+ 166   1        Lcd_write_cmd(LCD_Set_Display_ON_OFF|LCD_Display_ON);
+ 167   1      }
+ 168          
+ 169          /*********************************
+ 170          º¯ÊýÃû³Æ£ºLcd_off
+ 171          ¹¦ÄÜ£ºLCD¹Ø±ÕÏÔÊ¾
+ 172          ÊäÈë£ºÎÞ
+ 173          Êä³ö£ºÎÞ
+ 174          ±¸×¢£º
+ 175          *********************************/
+ 176          void Lcd_off()
+ 177          {
+ 178   1        Lcd_write_cmd(LCD_Set_Display_ON_OFF|LCD_Display_OFF);
+ 179   1      }
+ 180          
+ 181          /*********************************
+ 182          º¯ÊýÃû³Æ£ºLcd_set_seg_reverse
+ 183          ¹¦ÄÜ£ºLCDÉèÖÃ´¹Ö±¾µÏñ
+ 184          ÊäÈë£º0Õý³££¬1·´×ª
+ 185          Êä³ö£ºÎÞ
+ 186          ±¸×¢£ºÖ»¸Ä±äÊäÈë·½Ïò£¬²»¸Ä±äÉ¨Ãè·½Ïò
+ 187          *********************************/
+ 188          void Lcd_set_seg_reverse(bit on)
+ 189          {
+ 190   1        lcd_seg_reverse=on;
+ 191   1        Lcd_write_cmd(LCD_Set_SEG_Direction|(on ? LCD_SEG_Direction_reverse:LCD_SEG_Direction_normal));
+ 192   1      }
+ 193          
+ 194          /*********************************
+ 195          º¯ÊýÃû³Æ£ºLcd_set_com_reverse
+ 196          ¹¦ÄÜ£ºLCDÉèÖÃË®Æ½¾µÏñ
+ 197          ÊäÈë£º0Õý³££¬1·´×ª
+ 198          Êä³ö£ºÎÞ
+ 199          ±¸×¢£º
+ 200          *********************************/
+ 201          void Lcd_set_com_reverse(bit on)
+ 202          {
+ 203   1        lcd_com_reverse=on;
+ 204   1        Lcd_write_cmd(LCD_Set_COM_Direction|(on ? LCD_COM_Direction_reverse:LCD_COM_Direction_normal));
+ 205   1      }
+ 206          
+ 207          /*********************************
+ 208          º¯ÊýÃû³Æ£ºLcd_set_com_reverse
+ 209          ¹¦ÄÜ£ºLCDÉèÖÃ·´É«ÏÔÊ¾
+ 210          ÊäÈë£º0Õý³££¬1·´×ª
+ 211          Êä³ö£ºÎÞ
+ 212          ±¸×¢£º
+ 213          *********************************/
+ 214          void Lcd_set_black_reverse(bit on)
+ 215          {
+ 216   1        lcd_black_reverse=on;
+ 217   1        Lcd_write_cmd(LCD_Inverse_Display|(on ? LCD_Inverse_Display_inverse:LCD_Inverse_Display_normal));
+ 218   1      }
+ 219          
+ 220          /*********************************
+ 221          º¯ÊýÃû³Æ£ºLcd_set_contrast
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 5   
+
+ 222          ¹¦ÄÜ£ºLCDÉèÖÃ¶Ô±È¶È
+ 223          ÊäÈë£º¶Ô±È¶È
+ 224          Êä³ö£ºÎÞ
+ 225          ±¸×¢£º
+ 226          *********************************/
+ 227          void Lcd_set_contrast(unsigned char contrast)
+ 228          {
+ 229   1        if(contrast>63)
+ 230   1          return;
+ 231   1        lcd_contrast=contrast;
+ 232   1        Lcd_write_cmd(LCD_Set_EV);
+ 233   1        Lcd_write_cmd(contrast);
+ 234   1      }
+ 235          
+ 236          /*********************************
+ 237          º¯ÊýÃû³Æ£ºLcd_write_icon
+ 238          ¹¦ÄÜ£ºLCDÐ´Í¼±êRAM£¨µÚ9PAGE£©
+ 239          ÊäÈë£ºÍ¼±êÐòºÅ£¬ÏÔÊ¾/¹Ø±Õ
+ 240          Êä³ö£ºÎÞ
+ 241          ±¸×¢£º
+ 242          *********************************/
+ 243          #if LCD_ICON
+ 244          void Lcd_write_icon(unsigned char num,bit value)
+ 245          {
+ 246   1        if(num>131)
+ 247   1          return;
+ 248   1        Lcd_set_pos(num,8);
+ 249   1        Lcd_write_dat(value);
+ 250   1      }
+ 251          
+ 252          /*********************************
+ 253          º¯ÊýÃû³Æ£ºLcd_clear_icon
+ 254          ¹¦ÄÜ£ºLCDÇå³ýËùÓÐÍ¼±ê
+ 255          ÊäÈë£ºÎÞ
+ 256          Êä³ö£ºÎÞ
+ 257          ±¸×¢£º
+ 258          *********************************/
+ 259          void Lcd_clear_icon()
+ 260          {
+ 261   1        unsigned char i;
+ 262   1        for(i=0;i<131;i++)
+ 263   1          Lcd_write_icon(i,0);
+ 264   1      }
+ 265          #endif
+ 266          
+ 267          /*********************************
+ 268          º¯ÊýÃû³Æ£ºLcd_init
+ 269          ¹¦ÄÜ£ºLCD³õÊ¼»¯
+ 270          ÊäÈë£ºÎÞ
+ 271          Êä³ö£ºÎÞ
+ 272          ±¸×¢£º
+ 273          *********************************/
+ 274          void Lcd_init()
+ 275          {
+ 276   1        LCD_RST=0;//Ó²¸´Î»
+*** ERROR C202 IN LINE 276 OF Src\ST7567.c: 'LCD_RST': undefined identifier
+ 277   1        delayms(10);
+ 278   1        LCD_RST=1;
+*** ERROR C202 IN LINE 278 OF Src\ST7567.c: 'LCD_RST': undefined identifier
+ 279   1        delayms(10);
+ 280   1        
+ 281   1        Lcd_write_cmd(LCD_Reset);//Èí¸´Î»
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 6   
+
+ 282   1        delayms(100); 
+ 283   1        Lcd_off();
+ 284   1        Lcd_write_cmd(LCD_Bias_Select|LCD_Bias_Select_1_9_bias);//Æ«Ñ¹±È
+ 285   1        Lcd_write_cmd(LCD_Regulation_Ratio|LCD_Rv0_RATIO);//ÉèÖÃV0µç×è±ÈÀý
+ 286   1        Lcd_set_seg_reverse(lcd_seg_reverse);//´¹Ö±¾µÏñ
+ 287   1        Lcd_set_com_reverse(lcd_com_reverse);//Ë®Æ½¾µÏñ
+ 288   1        Lcd_set_black_reverse(lcd_black_reverse);//·´ÏÔ
+ 289   1        Lcd_set_contrast(lcd_contrast);//Òº¾§Çý¶¯µçÑ¹µ÷Õû£¨¶Ô±È¶È£©
+ 290   1        Lcd_write_cmd(LCD_Set_All_Pixel_ON|LCD_All_Pixel_ON_Disable);//¹ØÈ«²¿ÏÔÊ¾
+ 291   1        Lcd_write_cmd(LCD_Set_Booster);Lcd_write_cmd(LCD_Set_Booster_2x_3x_4x);//ÉýÑ¹±È
+ 292   1        Lcd_write_cmd(LCD_Power_Control|LCD_Power_Control_Booster);//¿ªÉýÑ¹Æ÷
+ 293   1        delayms(10);
+ 294   1        Lcd_write_cmd(LCD_Power_Control|LCD_Power_Control_Booster|LCD_Power_Control_Vadj);//¿ªµçÑ¹µ÷ÕûÆ÷
+ 295   1        delayms(10);
+ 296   1        Lcd_write_cmd(LCD_Power_Control|LCD_Power_Control_Booster|LCD_Power_Control_Vadj|LCD_Power_Control_Follow
+             -);//¿ªµçÑ¹¸úËæÆ÷
+ 297   1        delayms(2);
+ 298   1        Lcd_write_cmd(LCD_Set_Start_Line|LCD_START_LINE);//ÉèÖÃ0Ò³ÆðÊ¼ÐÐ
+ 299   1        Lcd_cls();//ÇåÆÁ
+ 300   1      #if LCD_ICON
+ 301   1        Lcd_clear_icon();
+ 302   1      #endif
+ 303   1        Lcd_set_pos(0,0);//×ø±ê¹éÎ»
+ 304   1        Lcd_on();//¿ªÏÔÊ¾
+ 305   1      }
+ 306          
+ 307          /*********************************
+ 308          º¯ÊýÃû³Æ£ºLcd_pic
+ 309          ¹¦ÄÜ£ºLCDÏÔÊ¾Í¼Æ¬
+ 310          ÊäÈë£ºxÆðÊ¼×ø±ê£¬yÆðÊ¼×ø±ê£¬³¤¶È£¬¿í¶È£¬Í¼Æ¬Êý¾Ý£¬·´ÏÔ
+ 311          Êä³ö£ºÎÞ
+ 312          ±¸×¢£º
+ 313          *********************************/
+ 314          void Lcd_pic(unsigned char x0,unsigned char y0,unsigned char h,unsigned char w,unsigned char *pic,bit b)
+ 315          {
+ 316   1        unsigned char x;
+ 317   1        if(x0>131||h>132||y0>7||w>8)
+ 318   1          return;
+ 319   1        h=h+x0-1;//¼ÆËã×ø±êÔöÁ¿ÖÕÖ¹Öµ
+ 320   1        w=w+y0-1;
+ 321   1        for(;y0<=w;y0++)
+ 322   1        {
+ 323   2          Lcd_set_pos(x0,y0);
+ 324   2          for(x=x0;x<=h;x++)
+ 325   2            Lcd_write_dat(b ? ~*pic++:*pic++);
+ 326   2        }
+ 327   1      }
+ 328          
+ 329          /*********************************
+ 330          º¯ÊýÃû³Æ£ºLcd_P8x16char
+ 331          ¹¦ÄÜ£ºLCDÏÔÊ¾Ò»¸ö8x16×Ö·û
+ 332          ÊäÈë£ºx×ø±ê£¬y×ø±ê£¬×Ö·û£¬·´ÏÔ
+ 333          Êä³ö£ºÎÞ
+ 334          ±¸×¢£º
+ 335          *********************************/
+ 336          #if (LCD_ASCLL8X16||LCD_CH16X16)
+ 337          #include "ASC8X16.h"
+*** WARNING C318 IN LINE 337 OF Src\ST7567.c: can't open file 'ASC8X16.h'
+ 338          void Lcd_P8x16char(unsigned char x,unsigned char y,unsigned char chr,bit b)
+ 339          {
+ 340   1        if(x>131||y>7||chr>127)
+ 341   1          return;
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 7   
+
+ 342   1        Lcd_pic(x,y,8,2,&ASC8X16[(chr-32)*16],b);
+*** ERROR C202 IN LINE 342 OF Src\ST7567.c: 'ASC8X16': undefined identifier
+ 343   1      }
+ 344          
+ 345          /*********************************
+ 346          º¯ÊýÃû³Æ£ºLcd_P8x16Str
+ 347          ¹¦ÄÜ£ºLCDÏÔÊ¾8x16×Ö·û´®
+ 348          ÊäÈë£ºx×ø±ê£¬y×ø±ê£¬×Ö·û´®£¬·´ÏÔ
+ 349          Êä³ö£ºÎÞ
+ 350          ±¸×¢£º
+ 351          *********************************/
+ 352          void Lcd_P8x16Str(unsigned char x,unsigned char y,unsigned char *str,bit b)
+ 353          {
+ 354   1        while(*str!='\0')
+ 355   1        {
+ 356   2          Lcd_P8x16char(x,y,*str++,b);
+ 357   2          x+=8;
+ 358   2        }
+ 359   1      }
+ 360          #endif
+ 361          
+ 362          /*********************************
+ 363          º¯ÊýÃû³Æ£ºLcd_P5x7char
+ 364          ¹¦ÄÜ£ºLCDÏÔÊ¾Ò»¸ö5x7×Ö·û
+ 365          ÊäÈë£ºx×ø±ê£¬y×ø±ê£¬×Ö·û£¬·´ÏÔ
+ 366          Êä³ö£ºÎÞ
+ 367          ±¸×¢£º
+ 368          *********************************/
+ 369          #if LCD_ASCLL5X7
+ 370          #include "ASC5X7.h"
+*** WARNING C318 IN LINE 370 OF Src\ST7567.c: can't open file 'ASC5X7.h'
+ 371          void Lcd_P5x7char(unsigned char x,unsigned char y,unsigned char chr,bit b)
+ 372          {
+ 373   1        if(x>131||y>7||chr>127)
+ 374   1          return;
+ 375   1        Lcd_pic(x,y,5,1,&ASC5X7[(chr-32)*5],b);
+*** ERROR C202 IN LINE 375 OF Src\ST7567.c: 'ASC5X7': undefined identifier
+ 376   1      }
+ 377          
+ 378          /*********************************
+ 379          º¯ÊýÃû³Æ£ºLcd_P5x7Str
+ 380          ¹¦ÄÜ£ºLCDÏÔÊ¾5x7×Ö·û´®
+ 381          ÊäÈë£ºx×ø±ê£¬y×ø±ê£¬×Ö·û´®£¬·´ÏÔ
+ 382          Êä³ö£ºÎÞ
+ 383          ±¸×¢£º
+ 384          *********************************/
+ 385          void Lcd_P5x7Str(unsigned char x,unsigned char y,unsigned char *str,bit b)
+ 386          {
+ 387   1        while(*str!='\0')
+ 388   1        {
+ 389   2          Lcd_P5x7char(x,y,*str++,b);
+ 390   2          x+=6;
+ 391   2        }
+ 392   1      }
+ 393          #endif
+ 394          
+ 395          /*********************************
+ 396          º¯ÊýÃû³Æ£ºLcd_P16x16Ch
+ 397          ¹¦ÄÜ£ºLCDÏÔÊ¾ÖÐÎÄºÍ8x16×Ö·û´®
+ 398          ÊäÈë£ºx×ø±ê£¬y×ø±ê£¬×Ö·û´®£¬·´ÏÔ
+ 399          Êä³ö£ºÎÞ
+ 400          ±¸×¢£º
+C51 COMPILER V9.60.0.0   ST7567                                                            08/27/2022 20:28:17 PAGE 8   
+
+ 401          *********************************/
+ 402          #if LCD_CH16X16
+ 403          #include "CH16X16.h"
+*** WARNING C318 IN LINE 403 OF Src\ST7567.c: can't open file 'CH16X16.h'
+ 404          const unsigned int CH_NUM=(sizeof GB_16)/34;//¼ÆËã×Ö¿â×ÖÊý
+*** ERROR C202 IN LINE 404 OF Src\ST7567.c: 'GB_16': undefined identifier
+ 405          
+ 406          void Lcd_P16x16Ch(unsigned char x,unsigned char y,unsigned char *cnstr,bit b)
+ 407          {
+ 408   1        unsigned int word;
+ 409   1        if(x>131||y>7)
+ 410   1          return;
+ 411   1        while(*cnstr!='\0')
+ 412   1        {
+ 413   2          if(*cnstr>=0x81)//ÎÄ×ÖÎªºº×Ö
+ 414   2          {
+ 415   3            for(word=0;word<=CH_NUM;word++)//ËÑË÷×Ö¿â
+ 416   3              if((GB_16[word].Index[0]==*cnstr)&&(GB_16[word].Index[1]==*(cnstr+1)))
+*** ERROR C202 IN LINE 416 OF Src\ST7567.c: 'GB_16': undefined identifier
+ 417   3                Lcd_pic(x,y,16,2,GB_16[word].Msk,b);
+*** ERROR C202 IN LINE 417 OF Src\ST7567.c: 'GB_16': undefined identifier
+ 418   3            x+=16;
+ 419   3            cnstr+=2;
+ 420   3          }
+ 421   2          else//ÎÄ×ÖÎªASCLL×Ö·û
+ 422   2          {
+ 423   3            Lcd_P8x16char(x,y,*cnstr,b);
+ 424   3            cnstr++;
+ 425   3            x+=8;
+ 426   3          }
+ 427   2        }
+ 428   1      }
+ 429          #endif
+
+C51 COMPILATION COMPLETE.  3 WARNING(S),  25 ERROR(S)

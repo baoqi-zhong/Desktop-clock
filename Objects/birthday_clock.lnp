@@ -1,0 +1,3 @@
+".\Objects\main.obj" 
+TO ".\Objects\birthday_clock" 
+PRINT(".\Listings\birthday_clock.m51") RAMSIZE(256) 
