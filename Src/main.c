@@ -6,7 +6,7 @@ delay改成slp5ms 静态0.4mA
 */
 
 
-#include "STC8.h"
+#include "STC8H.h"
 #include "stc_common.h"
 #include "main.h"
 #include <intrins.h>
@@ -15,9 +15,9 @@ delay改成slp5ms 静态0.4mA
 unsigned char mode = MODE_TIME;
 unsigned char settings_focus = 0;
 
-unsigned char shutdown_mode_flag = 0; // 0无 1关闭所有 2停止晶振省电
+unsigned char shutdown_mode_flag = 0; // 0无 1关闭所有
 
-unsigned char now_time[5] = {12, 00, 10, 23, 7};
+unsigned char now_time[5] = {12, 00, 12, 5, 1};
 unsigned char display_num_data[4];
 
 unsigned char BTN1_INT_FLAG=0, BTN2_INT_FLAG=0;
@@ -36,19 +36,15 @@ unsigned char refresh_screen_now = 1;
 unsigned int refresh_count = 0x01;
 unsigned char add_count = ADD_DT;
 
-sfr IRCBAND = 0x9D; // 频段
-sfr LIRTRIM = 0x9E; // 频率微调寄存器
-sfr IRTRIM = 0x9F; // 频率调整寄存器
-
 
 void high_speed()
 {
   TR0 = 0; // 关闭定时器
   P_SW2 = 0x80;
   
-  IRC24MCR |= 0x80; // 打开HRC
-  while(!(IRC24MCR & 1));
-  CKSEL = 0; // 内部32K  
+  HIRCCR |= 0x80; // 打开HRC
+  while(!(HIRCCR & 1));
+  CLKSEL = 0; // 内部32K  
   CLKDIV = 15; // 恢复默认  
   IRC32KCR &= 0x7F; // 关闭LRC
   P_SW2 = 0x00; 
@@ -59,43 +55,63 @@ void low_speed()
   P_SW2 = 0x80;
   IRC32KCR |= 0x80; // 打开LRC
   while(!(IRC32KCR & 1));
-  CKSEL = 3; // 内部32K
+  CLKSEL = 3; // 内部32K
   CLKDIV = 0;
-  IRC24MCR &= 0x7F; // 关闭HRC
+  HIRCCR &= 0x7F; // 关闭HRC
 
   P_SW2 = 0x00; 
   TR0 = 1; // 打开定时器
 }
 
-void delay(unsigned int time)
+void delay_1ms()
 {
-  unsigned int time_;
-  P_SW2 = 0x80;
-  if(CLKDIV==15)
-  {
-    P_SW2 = 0x00;
-    for(time_=0;time_<time;time_++)
-    {
-      unsigned char i, j; // 2MHz
-      i = 2;
-      j = 239;
-      do
-      {
-        while (--j);
-      } while (--i);
-    }
-  }
-  else
-  {
-    P_SW2 = 0x00;
-    for(time_=0;time_<time;time_++)
-    {
-      unsigned char i; // 32KHz
-      i = 8;
-      while (--i);
-    }
-  }
+	WKTCL=0x02;
+	WKTCH=0x80;
+	
+	PCON = 0x02;
+	_nop_();
+	_nop_();
 }
+
+void delay_5ms()
+{
+	WKTCL=0x09;
+	WKTCH=0x80;
+	
+	PCON = 0x02;
+	_nop_();
+	_nop_();
+}
+
+//void delay(unsigned int time)
+//{
+//  unsigned int time_;
+//  P_SW2 = 0x80;
+//  if(CLKDIV==15)
+//  {
+//    P_SW2 = 0x00;
+//    for(time_=0;time_<time;time_++)
+//    {
+//      unsigned char i, j; // 2MHz
+//      i = 2;
+//      j = 239;
+//      do
+//      {
+//        while (--j);
+//      } while (--i);
+//    }
+//  }
+//  else
+//  {
+//    P_SW2 = 0x00;
+//    for(time_=0;time_<time;time_++)
+//    {
+//      unsigned char i; // 32KHz
+//      i = 8;
+//      while (--i);
+//    }
+//  }
+//}
 
 
 void shutdown()
@@ -124,17 +140,14 @@ void shutdown()
 
   DS1302_VCC = DS1302_VCC_OFF;
   
-  WKTCL=0xFE;  //掉电唤醒定时器关闭！
+  WKTCL=0xFE;  // 掉电唤醒定时器
   WKTCH=0xFF;
   
   shutdown_mode_flag = 1;
   PCON = 0x02;
   _nop_();
   _nop_();
-  _nop_();
-  _nop_(); 
   
-  //shutdown_mode_flag = 0;
   refresh_count = 1;
   refresh_screen_now = 0;
 }
@@ -198,12 +211,12 @@ unsigned char DS1302_read(unsigned char address)
 void DS1302_power_on()
 {
   DS1302_VCC = DS1302_VCC_ON;
-  delay(5);
+  delay_5ms();
 }
 
 void DS1302_power_off()
 {
-  delay(5);
+  delay_5ms();
   DS1302_VCC = DS1302_VCC_OFF;
 }
 
@@ -321,7 +334,7 @@ void SCREEN_init()
   unsigned char i;
   
   SCREEN_RST = 0;
-  delay(1);
+  delay_1ms();
   SCREEN_RST = 1;
   
   SCREEN_CS = 0;
@@ -335,7 +348,7 @@ void SCREEN_init()
   for (i = 0; i < 8; i++)
   {
     SCREEN_write_cmd(init_cmds[i]);
-    delay(1);
+    delay_1ms();
   }
   SCREEN_clear();
 }
@@ -619,30 +632,30 @@ void draw_count_down()
   draw_chinese(114,6,18);
 }
 
-void draw_count_down_big()
-{
-  signed int remained_day;
-  
-  remained_day = MONTH_TO_COUNTDOWN[now_time[NOW_TIME_MONTH] - 1] - now_time[NOW_TIME_DAY];
-  if(remained_day<0)
-    remained_day = 0;
-  
-  if(remained_day>99)
-    print_big_num(22,2,remained_day/100);
-  else
-    print_big_num(22,2,10);
-  
-  if(remained_day>9)
-    print_big_num(54,2,(remained_day/10)%10);
-  else
-    print_big_num(54,2,10);
-  
-  print_big_num(86,2,remained_day%10);
-  
-  draw_chinese(2,2,14);
-  draw_chinese(2,5,15);
-  draw_chinese(114,5,18);
-}
+//void draw_count_down_big()
+//{
+//  signed int remained_day;
+//  
+//  remained_day = MONTH_TO_COUNTDOWN[now_time[NOW_TIME_MONTH] - 1] - now_time[NOW_TIME_DAY];
+//  if(remained_day<0)
+//    remained_day = 0;
+//  
+//  if(remained_day>99)
+//    print_big_num(22,2,remained_day/100);
+//  else
+//    print_big_num(22,2,10);
+//  
+//  if(remained_day>9)
+//    print_big_num(54,2,(remained_day/10)%10);
+//  else
+//    print_big_num(54,2,10);
+//  
+//  print_big_num(86,2,remained_day%10);
+//  
+//  draw_chinese(2,2,14);
+//  draw_chinese(2,5,15);
+//  draw_chinese(114,5,18);
+//}
 
 void draw_calendar()
 {
@@ -740,6 +753,8 @@ void draw_calendar()
 
 }
 
+int cap;
+unsigned long adc;
 
 void refresh_screen()
 {
@@ -766,16 +781,16 @@ void refresh_screen()
     print_time(2,2,display_num_data);
     SCREEN_BG = 0;
   }
-  else if (mode == MODE_COUNT_DOWN)
-  {
-    read_now_time();
-    
-    print_day_and_date();
-    
-    print_small_time(98,0,now_time[NOW_TIME_HOUR], now_time[NOW_TIME_MINUTE]);
-    
-    draw_count_down_big();
-  }
+//  else if (mode == MODE_COUNT_DOWN)
+//  {
+//    read_now_time();
+//    
+//    print_day_and_date();
+//    
+//    print_small_time(98,0,now_time[NOW_TIME_HOUR], now_time[NOW_TIME_MINUTE]);
+//    
+//    draw_count_down_big();
+//  }
   else if (mode == MODE_CLASS)
   {
     read_now_time();
@@ -806,16 +821,45 @@ void refresh_screen()
   }
   else if (mode == MODE_SETTING)
   {
-    SCREEN_BG = edit;
+    print_line(2,0, "Countdown Clock V5.0");
+		print_line(2,1, "Present to Liang QC");
+		//print_line(2,1, "Present to Lao JJ");
+		
+		ADC_CONTR |= 0x80; // power on
+		delay_1ms();
+		delay_1ms();
+		
+		ADC_CONTR |= 0x40; // start convert
+		_nop_();
+		_nop_();
+		while (!(ADC_CONTR & 0x20));
+		ADC_CONTR &= ~0x20; // clr flag power off
+		
+		adc = ADC_RES;
+		if(adc<73)
+			adc = 73;
+		else if(adc>83)
+			adc = 83;
+		
+		cap = 100-10*(adc-73);
+		
+		print_line(2,3,"Battery:");	
+		if(cap==100)
+		{
+			print_var(50,3,cap,3);
+			print_line(70,3,"%");	
+		}
+		else
+		{
+			print_var(50,3,cap,2);
+			print_line(64,3,"%");	
+		}
 
-    print_line(2,0, "Countdown Clock");
-    print_line(2,1, "Ver. 4.1");
-    
-    
-    print_line(2,6, "- Designed by");
+		
+    print_line(2,6, "- Presented by");
     print_line(2,7, "- Baoqi-zhong :D");
 
-    //SCREEN_BG = 0;
+    SCREEN_BG = 0;
   }
   
   low_speed();
@@ -826,12 +870,12 @@ void btn()
   if (lift == 1) // 还没长按够
   {
     if (BTN1_INT_FLAG == 1 && BTN2_INT_FLAG == 0)
-      btn1_press_time += 1;
+      btn1_press_time ++;
     else
       btn1_press_time = 0;
     
     if (BTN2_INT_FLAG == 1 && BTN1_INT_FLAG == 0)
-      btn2_press_time += 1;
+      btn2_press_time ++;
     else
       btn2_press_time = 0;
   }
@@ -858,7 +902,14 @@ void btn_process()
 
   if (btn_state == 1 & edit==0 & settings_focus==0) //btn1 短
   {
-    delay(1);
+		// delay(1);
+		WKTCL=0x02;
+    WKTCH=0x80;
+    
+    PCON = 0x02;
+    _nop_();
+    _nop_();
+		
     mode = (mode + 1) % MAX_MODE;
     SCREEN_clear();
     refresh_screen_now = 1;
@@ -872,7 +923,7 @@ void btn_process()
     if (mode!=MODE_SETTING)
     {
       refresh_screen_now = 1;
-      if (edit==1)
+      if (edit)
       {
         edit = 0;
         //TMR0_DIS;
@@ -883,7 +934,7 @@ void btn_process()
       {
         edit = 1;
         hot_num = 0;
-        refresh_count = 0x2F;
+        refresh_count = 0x10;
         add_count = ADD_DT;
         //TMR0_EN;
         DS1302_power_on();
@@ -897,19 +948,7 @@ void btn_process()
       btn_state = 0;
       return;
     }
-    
-    if(mode==MODE_SETTING)
-    {
-      refresh_screen_now = 1;
 
-      if (settings_focus==0)
-        settings_focus = 1;
-      else
-        settings_focus = 0;
-      
-      btn_state = 0;
-      return; 
-    }
   }
 
   
@@ -917,7 +956,7 @@ void btn_process()
   {
     max_[0] = 24;
     max_[1] = 60; 
-    if(edit==1)
+    if(edit)
     {
       if (btn_state == 1) //btn1 短
       {
@@ -978,12 +1017,12 @@ void btn_process()
   }
 
   
-  else if (mode==MODE_CLASS | mode==MODE_COUNT_DOWN | mode==MODE_CALENDAR)
+  else if (mode==MODE_CLASS  | mode==MODE_CALENDAR)// | mode==MODE_COUNT_DOWN
   {
     max_[0] = 12;
     max_[1] = 31; 
     max_[2] = 7; 
-    if(edit==1)
+    if(edit)
     {
       if (btn_state == 1) //btn1 短
       {
@@ -1057,6 +1096,8 @@ void wake_up_init()
   mode = MODE_TIME;
   read_now_time();
   refresh_screen_now = 1;
+
+	shutdown_mode_flag = 0;
 }
 
 
@@ -1064,16 +1105,11 @@ void INT0_Isr() interrupt 0
 {
   if(BTN_1 == 1) // 上升沿
   {
-    if(shutdown_mode_flag==1)
-      wake_up_init();
-    else
-    {
-      BTN1_INT_FLAG = 1;
-    }
+		BTN1_INT_FLAG = 1;
   }
   else // 下降沿
   {
-    if(shutdown_mode_flag==1)
+    if(shutdown_mode_flag)
       shutdown();
     else
     {
@@ -1095,16 +1131,12 @@ void INT1_Isr() interrupt 2
 {
   if(BTN_2 == 1) // 上升沿
   {
-    if(shutdown_mode_flag==1)
-      wake_up_init();
-    else
-    {
-      BTN2_INT_FLAG = 1;
-    }
+		BTN2_INT_FLAG = 1;
+    
   }
   else // 下降沿
   {
-    if(shutdown_mode_flag==1)
+    if(shutdown_mode_flag)
       shutdown();
     else
     {
@@ -1151,7 +1183,14 @@ void main()
 
 
   BUZZER = 0;
+	
+	P_SW2 |= 0x80;
+	ADCTIM = 0x3f; // 采样时间
+	P_SW2 &= 0x7f;
+	ADCCFG = 0x0f; // 左对齐
+	ADC_CONTR = 0x0F; // 对内部1.19V进行采样 ADC电源关闭
 
+		
   while(1)
   {
     refresh_count--;
@@ -1161,27 +1200,23 @@ void main()
      
       if(edit&&(mode!=MODE_SETTING))
       {
-        refresh_count = 0x40;
+        refresh_count = 0x10;
       }
       else
       {
-        refresh_count = 0x19BC; // 57s
+        refresh_count = 2150; // 58s
         
         read_now_time();
         if(now_time[NOW_TIME_HOUR]>=23 || now_time[NOW_TIME_HOUR]<6 )
-        {
-          //TMR2_CLR;
-          //TMR2_EN;
           shutdown();
-        }
+				else if (shutdown_mode_flag)
+					wake_up_init();
       }
     }
     
     if(refresh_screen_now)
     {
       refresh_screen_now = 0;
-      if(shutdown_mode_flag)
-        SCREEN_init();
       refresh_screen();
     }  
     btn();
@@ -1191,8 +1226,8 @@ void main()
       btn_process();    
     }
 
-    //delay(5);
-    WKTCL=0x0A;  //掉电唤醒定时器关闭！
+    //delay_5ms();
+    WKTCL=0x30;
     WKTCH=0x80;
     
     PCON = 0x02;

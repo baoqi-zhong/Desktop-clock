@@ -15,8 +15,8 @@
 
 #define BUZZER P10
 
-#define LONG_PRESS_TIME 0x50 // 超过这个就算长按
-#define ADD_DT 8 // 长按加一速度 越大越慢
+#define LONG_PRESS_TIME 0x20 // 超过这个就算长按
+#define ADD_DT 3 // 长按加一速度 越大越慢
 
 #define DS1302_VCC_ON 0
 #define DS1302_VCC_OFF 1
@@ -27,13 +27,13 @@
 #define NOW_TIME_DAY 3
 #define NOW_TIME_WEEKDAY 4
 
-#define MAX_MODE 5
+#define MAX_MODE 4
 
 #define MODE_TIME 0
-#define MODE_COUNT_DOWN 1
-#define MODE_CLASS 2
-#define MODE_CALENDAR 3
-#define MODE_SETTING 4
+//#define MODE_COUNT_DOWN 1
+#define MODE_CLASS 1
+#define MODE_CALENDAR 2
+#define MODE_SETTING 3
 
 
 #define MAX_SETTINGS 3
@@ -352,7 +352,7 @@ const unsigned char code lesson_table[] = {
   0 ,0 ,4 ,1 ,2  ,5 ,6 ,10,10, // Wednesday
   2 ,5 ,1 ,3 ,3  ,4 ,7 ,1 ,1 , // Thursday
   1 ,1 ,0 ,3 ,5  ,4 ,2 ,0, 0 , // Friday
-  2, 5 ,4 ,0 ,1  ,3 ,6 ,1 ,1 , // Saturday
+  2, 5 ,4 ,0 ,3  ,1 ,6 ,1 ,1 , // Saturday
   13,13,13,13,13 ,13,13,13,13, // Sunday
 };
 // 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
